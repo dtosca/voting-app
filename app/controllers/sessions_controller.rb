@@ -1,4 +1,7 @@
 class SessionsController < ApplicationController
+
+    skip_before_action :require_login, only: [:create, :show] # Allow these actions without login
+
     # POST /login
     def create
       user = User.verify(params[:email], params[:password])

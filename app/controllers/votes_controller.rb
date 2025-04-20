@@ -1,7 +1,5 @@
 class VotesController < ApplicationController
 
-  skip_before_action :verify_authenticity_token
-
   # GET /vote
   def index
     # @candidates = Candidate.all
