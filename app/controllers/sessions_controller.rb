@@ -5,21 +5,19 @@ class SessionsController < ApplicationController
 
     # POST /login
     def create
-      user = User.verify(params[:email], params[:password])
+      puts "Raw params: #{params.inspect}" # Debug logging
+      zip_code = params[:zip_code] || params.dig(:user, :zip_code)
+      
+      user = User.verify(
+        params[:email] || params.dig(:session, :email),
+        params[:password] || params.dig(:session, :password),
+        zip_code
+      )
       
       session[:user_id] = user.id
-      render json: { 
-        success: true, 
-        user: { 
-          email: user.email,
-          zip_code: user.zip_code
-        }
-      }
-    rescue ActiveRecord::RecordInvalid => e
-      render json: { 
-        success: false, 
-        error: "Account creation failed: #{e.message}" 
-      }, status: :unprocessable_entity
+      render json: { success: true, user: user }
+    rescue => e
+      render json: { success: false, error: e.message }, status: :unprocessable_entity
     end
   
     # DELETE /logout
