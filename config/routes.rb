@@ -15,4 +15,5 @@ Rails.application.routes.draw do
   
   # Protected routes
   resources :votes, only: [:create, :show], defaults: { format: :json }
+  resources :candidates, only: [:index, :create]
 end

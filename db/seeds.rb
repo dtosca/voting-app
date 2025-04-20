@@ -8,7 +8,24 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
+# Clear existing
+User.destroy_all
+Candidate.destroy_all
+
 User.create!([
   { email: "hillary@example.com", password: "pokemonGo2Polls", zip_code: "11232" },
   { email: "bernie@example.com", password: "grumpyGr@ndpa", zip_code: "33010" }
 ])
+
+puts "Created #{User.count} users"
+
+candidates = [
+  "Cindy and the Scintillators",
+  "BTESS",
+]
+
+candidates.each do |name|
+  Candidate.create!(name: name)
+end
+
+puts "Created #{Candidate.count} candidates"

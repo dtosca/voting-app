@@ -4,54 +4,76 @@ const Vote = () => {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [newCandidateName, setNewCandidateName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
 
-  // Fetch candidates on mount
+  // Fetch candidates and voting status on component mount
   useEffect(() => {
-    const fetchCandidates = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/candidates');
-        const data = await res.json();
-        setCandidates(data);
+        // Check if user already voted
+        const voteCheck = await fetch('/votes', {
+          credentials: 'include'
+        });
+        
+        if (!voteCheck.ok) throw new Error('Failed to check voting status');
+        
+        const voteData = await voteCheck.json();
+        if (voteData.voted) {
+          setHasVoted(true);
+          return;
+        }
+
+        // Fetch candidates if user hasn't voted
+        const candidatesResponse = await fetch('/candidates', {
+          credentials: 'include'
+        });
+        
+        if (!candidatesResponse.ok) throw new Error('Failed to load candidates');
+        
+        const candidatesData = await candidatesResponse.json();
+        setCandidates(candidatesData);
       } catch (err) {
-        setError("Failed to load candidates");
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchCandidates();
+    fetchData();
   }, []);
 
   const handleVote = async () => {
-    setIsSubmitting(true);
-    setError(null);
+    if (!selectedCandidate && !newCandidateName.trim()) return;
 
     try {
-      const voteData = selectedCandidate 
-        ? { candidate_id: selectedCandidate }
-        : { new_candidate: newCandidateName };
-
-      const res = await fetch('/votes', {
+      const response = await fetch('/votes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vote: voteData }),
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          vote: {
+            candidate_id: selectedCandidate,
+            new_candidate: newCandidateName.trim()
+          }
+        })
       });
 
-      if (!res.ok) throw new Error(await res.text());
-      
-      setSuccess(true);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.errors?.join(', ') || 'Vote failed');
+      }
+
+      setHasVoted(true);
     } catch (err) {
-      setError(err.message || "Vote submission failed");
-    } finally {
-      setIsSubmitting(false);
+      setError(err.message);
     }
   };
 
-  const isValidVote = selectedCandidate || (newCandidateName.trim().length > 0);
-
-  if (success) {
+  if (hasVoted) {
     return (
       <div className="alert alert-success" role="alert">
         <h2>Thank you for voting!</h2>
@@ -60,83 +82,88 @@ const Vote = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center my-5">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        Error: {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="vote-container" role="main">
-      <h1 id="vote-heading">Cast Your Vote</h1>
+    <div className="container mt-4">
+      <h1 className="mb-4">Cast Your Vote</h1>
       
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
-
-      <fieldset className="mb-4">
-        <legend className="h2 mb-3">Choose an existing candidate</legend>
-        <div className="candidate-list" role="radiogroup" aria-labelledby="vote-heading">
-          {candidates.map(candidate => (
-            <div key={candidate.id} className="form-check mb-2">
-              <input
-                type="radio"
-                id={`candidate-${candidate.id}`}
-                name="candidate"
-                className="form-check-input"
-                checked={selectedCandidate === candidate.id}
-                onChange={() => {
-                  setSelectedCandidate(candidate.id);
-                  setNewCandidateName(''); // Clear the other input
-                }}
-                aria-describedby={`candidate-${candidate.id}-name`}
-              />
+      <div className="card mb-4">
+        <div className="card-body">
+          <h2 className="h4 mb-3">Select a Candidate</h2>
+          <div className="list-group">
+            {candidates.map(candidate => (
               <label 
-                htmlFor={`candidate-${candidate.id}`}
-                className="form-check-label"
-                id={`candidate-${candidate.id}-name`}
+                key={candidate.id}
+                className="list-group-item d-flex align-items-center"
               >
-                {candidate.name}
+                <input
+                  type="radio"
+                  name="candidate"
+                  className="form-check-input me-3"
+                  checked={selectedCandidate === candidate.id}
+                  onChange={() => {
+                    setSelectedCandidate(candidate.id);
+                    setNewCandidateName('');
+                  }}
+                  aria-labelledby={`candidate-label-${candidate.id}`}
+                />
+                <span id={`candidate-label-${candidate.id}`}>
+                  {candidate.name}
+                </span>
               </label>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </fieldset>
+      </div>
 
-      <div className="mb-4">
-        <h2 className="h2 mb-3">Or, write in a candidate...</h2>
-        <div className="form-group">
-          <label htmlFor="new-candidate" className="form-label">
-            Write-in Candidate Name
-          </label>
-          <input
-            type="text"
-            id="new-candidate"
-            className="form-control"
-            value={newCandidateName}
-            onChange={(e) => {
-              setNewCandidateName(e.target.value);
-              setSelectedCandidate(null); // Clear radio selection
-            }}
-            aria-describedby="new-candidate-help"
-          />
-          <small id="new-candidate-help" className="form-text text-muted">
-            Enter the name of your write-in candidate
-          </small>
+      <div className="card mb-4">
+        <div className="card-body">
+          <h2 className="h4 mb-3">Or Write-In Candidate</h2>
+          <div className="mb-3">
+            <label htmlFor="writeInCandidate" className="form-label">
+              Candidate Name
+            </label>
+            <input
+              type="text"
+              id="writeInCandidate"
+              className="form-control"
+              value={newCandidateName}
+              onChange={(e) => {
+                setNewCandidateName(e.target.value);
+                setSelectedCandidate(null);
+              }}
+              aria-describedby="writeInHelp"
+            />
+            <div id="writeInHelp" className="form-text">
+              Enter name if your candidate isn't listed
+            </div>
+          </div>
         </div>
       </div>
 
       <button
-        type="button"
         className="btn btn-primary btn-lg w-100"
         onClick={handleVote}
-        disabled={!isValidVote || isSubmitting}
-        aria-disabled={!isValidVote || isSubmitting}
+        disabled={!selectedCandidate && !newCandidateName.trim()}
       >
-        {isSubmitting ? (
-          <>
-            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span className="visually-hidden">Submitting...</span>
-          </>
-        ) : (
-          "Submit Vote"
-        )}
+        Submit Vote
       </button>
     </div>
   );
