@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   post '/login', to: 'sessions#create'
   delete '/logout', to: 'sessions#destroy'
   get '/check_session', to: 'sessions#show'
+  get '/vote', to: 'votes#index'
   
   # Protected routes
   resources :votes, only: [:create, :show], defaults: { format: :json }

@@ -1,26 +1,25 @@
 class SessionsController < ApplicationController
 
-    skip_before_action :require_login, only: [:create, :show] # Allow these actions without login
+    skip_before_action :verify_authenticity_token, only: [:create]
+    skip_before_action :require_login, only: [:create] # Allow login without being logged in
 
     # POST /login
     def create
       user = User.verify(params[:email], params[:password])
       
-      if user
-        session[:user_id] = user.id
-        render json: { 
-          success: true, 
-          user: { 
-            email: user.email,
-            zip_code: user.zip_code
-          }
+      session[:user_id] = user.id
+      render json: { 
+        success: true, 
+        user: { 
+          email: user.email,
+          zip_code: user.zip_code
         }
-      else
-        render json: { 
-          success: false, 
-          error: "Invalid email or password" 
-        }, status: :unauthorized
-      end
+      }
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { 
+        success: false, 
+        error: "Account creation failed: #{e.message}" 
+      }, status: :unprocessable_entity
     end
   
     # DELETE /logout

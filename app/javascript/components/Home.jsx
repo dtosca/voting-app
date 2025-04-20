@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Home = ({ message }) => {
 
@@ -63,8 +63,8 @@ const Home = ({ message }) => {
     // Redirect to home if not logged in
     useEffect(() => {
       fetch('/check_session')
-        .then(res => {
-          if (!res.ok) window.location.href = "/"; 
+        .then(response => {
+          if (!response.ok) window.location.href = "/"; 
         });
     }, []);
 

@@ -1,8 +1,11 @@
 
 class ApplicationController < ActionController::Base
     include ActionController::Cookies
-
+    protect_from_forgery with: :exception
     before_action :require_login
+
+    skip_before_action :verify_authenticity_token, 
+    if: -> { request.content_type == 'application/json' }
 
     private
 
