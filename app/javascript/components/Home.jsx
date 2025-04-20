@@ -26,43 +26,51 @@ const Home = ({ message }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  //handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (validateForm()) {
       setIsSubmitting(true);
 
-      // Handle form submission
-      console.log({ email, password, zipCode });
+      const response = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        zip_code: zipCode 
+      }),
+    });
 
+    console.log("Raw response:", response); // Inspect the full response
+
+      // First check response status
+      if (response.status === 204 || response.statusText === 'No Content') {
+        // Handle empty response
+        window.location.href = '/votes';
+        return;
+      }
+
+      // Then try to parse JSON
       try {
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              password: password,
-              zip_code: zipCode 
-    }),
-          credentials: 'include'
-        });
-        
+        const data = await response.json();
         if (response.ok) {
-          // Redirect to voting page
-          window.location.href = '/vote'; 
+          window.location.href = '/votes';
         } else {
-          const data = await response.json();
           alert(data.error || "Login failed");
         }
       } catch (err) {
-        alert("Network error");
+        // If JSON parsing fails, read as text
+        const text = await response.text();
+        console.error("Failed to parse JSON:", text);
+        alert("Login error: " + text);
       }
-
-      // Reset form after submission
-      setIsSubmitting(false);
+        // Reset form after submission
+        setIsSubmitting(false);
+      } else {
     }
-    
-    }
+  }
 
     // Redirect to home if not logged in
     useEffect(() => {
@@ -73,9 +81,8 @@ const Home = ({ message }) => {
     }, []);
 
   return (
-    <>
-      
-      <h1 id="signin-heading">Sign In to Voting App</h1>
+    <>    
+    <h1 id="signin-heading">Sign In to Voting App</h1>
       
       <form onSubmit={handleSubmit} noValidate aria-labelledby="signin-heading">
         <div className="form-group">
@@ -139,7 +146,7 @@ const Home = ({ message }) => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="signin-button"
+          className="btn btn-primary"
         >
           {isSubmitting ? 'Signing In...' : 'Sign In'}
         </button>

@@ -1,10 +1,12 @@
 class CandidatesController < ApplicationController
+    skip_before_action :verify_authenticity_token # Add this
+
+   
     # GET /candidates
     def index
-      @candidates = Candidate.all
-      render json: @candidates
+      render json: Candidate.all.as_json(only: [:id, :name]) # Explicit format
     end
-  
+
     # POST /candidates (for admin use later)
     def create
       if Candidate.count >= 10

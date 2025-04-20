@@ -2,6 +2,7 @@
 class ApplicationController < ActionController::Base
     include ActionController::Cookies
     protect_from_forgery with: :exception
+    before_action :basic_cors
     before_action :require_login
 
     skip_before_action :verify_authenticity_token, 
@@ -24,4 +25,9 @@ class ApplicationController < ActionController::Base
         controller_name == 'home' || 
         (controller_name == 'sessions' && action_name.in?(%w[create show]))
     end
+
+   def basic_cors
+    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
+  end
 end

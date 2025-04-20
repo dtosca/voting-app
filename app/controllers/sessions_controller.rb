@@ -5,20 +5,38 @@ class SessionsController < ApplicationController
 
     # POST /login
     def create
-      # Extract parameters with fallback for zip code
-      email = params[:email] || params.dig(:session, :email)
-      password = params[:password] || params.dig(:session, :password)
-      zip_code = params[:zip_code] || params.dig(:user, :zip_code) || '00000' # Default fallback
+      # Parameter extraction with clear structure
+      login_params = params.permit(:email, :password, :zip_code)
+      email = login_params[:email]
+      password = login_params[:password]
+      zip_code = login_params[:zip_code] || '00000' # Default fallback
 
+      # Business logic
       user = User.verify(email, password, zip_code)
       session[:user_id] = user.id
-      render json: { success: true, user: user }
 
-      rescue ActiveRecord::RecordInvalid => e
-        render json: { 
-          success: false, 
-          error: e.record.errors.full_messages.join(', ') 
-        }, status: :unprocessable_entity
+      # Secure response - don't expose full user object
+      render json: { 
+        success: true,
+        user: {
+          email: user.email,
+          zip_code: user.zip_code
+        }
+      }
+
+    rescue ActiveRecord::RecordInvalid => e
+      # Validation errors
+      render json: { 
+        success: false, 
+        error: e.record.errors.full_messages.join(', ')
+      }, status: :unprocessable_entity
+
+    rescue => e
+      # General errors (network, auth, etc)
+      render json: { 
+        success: false,
+        error: e.message 
+      }, status: :unauthorized
     end
   
     # DELETE /logout

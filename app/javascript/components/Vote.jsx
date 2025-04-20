@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Vote = () => {
-  const [candidates, setCandidates] = useState([]);
+  const [candidates, setCandidates] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [newCandidateName, setNewCandidateName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -14,11 +14,16 @@ const Vote = () => {
       try {
         // Check if user already voted
         const voteCheck = await fetch('/votes', {
-          credentials: 'include'
+          headers: {
+            'Accept': 'application/json' // Explicitly request JSON
+          },
         });
         
-        if (!voteCheck.ok) throw new Error('Failed to check voting status');
-        
+        if (!voteCheck.ok) {
+          const errorText = await voteCheck.text();
+          throw new Error(errorText || 'Failed to check voting status');
+        }
+
         const voteData = await voteCheck.json();
         if (voteData.voted) {
           setHasVoted(true);
@@ -27,14 +32,20 @@ const Vote = () => {
 
         // Fetch candidates if user hasn't voted
         const candidatesResponse = await fetch('/candidates', {
-          credentials: 'include'
+          headers: {
+            'Accept': 'application/json'
+          },
         });
         
-        if (!candidatesResponse.ok) throw new Error('Failed to load candidates');
+        if (!candidatesResponse.ok) {
+          const errorText = await candidatesResponse.text();
+          throw new Error(errorText || 'Failed to load candidates');
+        }
         
         const candidatesData = await candidatesResponse.json();
         setCandidates(candidatesData);
       } catch (err) {
+        console.error("Fetch error:", err);
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -45,15 +56,18 @@ const Vote = () => {
   }, []);
 
   const handleVote = async () => {
-    if (!selectedCandidate && !newCandidateName.trim()) return;
+    if (!selectedCandidate && !newCandidateName.trim()) {
+      setError("Please select a candidate or enter a write-in name");
+      return;
+    }
 
     try {
       const response = await fetch('/votes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify({
           vote: {
             candidate_id: selectedCandidate,
@@ -62,9 +76,14 @@ const Vote = () => {
         })
       });
 
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.errors?.join(', ') || 'Vote failed');
+        throw new Error(
+          responseData.errors?.join(', ') || 
+          responseData.error || 
+          'Vote failed'
+        );
       }
 
       setHasVoted(true);
@@ -95,19 +114,26 @@ const Vote = () => {
   if (error) {
     return (
       <div className="alert alert-danger" role="alert">
-        Error: {error}
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button 
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => setError(null)}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4" >
       <h1 className="mb-4">Cast Your Vote</h1>
       
       <div className="card mb-4">
         <div className="card-body">
           <h2 className="h4 mb-3">Select a Candidate</h2>
-          <div className="list-group">
+          <div className="list-group" role="radiogroup">
             {candidates.map(candidate => (
               <label 
                 key={candidate.id}
@@ -121,6 +147,7 @@ const Vote = () => {
                   onChange={() => {
                     setSelectedCandidate(candidate.id);
                     setNewCandidateName('');
+                    setError(null);
                   }}
                   aria-labelledby={`candidate-label-${candidate.id}`}
                 />
@@ -148,11 +175,14 @@ const Vote = () => {
               onChange={(e) => {
                 setNewCandidateName(e.target.value);
                 setSelectedCandidate(null);
+                setError(null);
               }}
               aria-describedby="writeInHelp"
+              pattern="^[a-zA-Z\s]{3,50}$"
+              title="3-50 letters only"
             />
             <div id="writeInHelp" className="form-text">
-              Enter name if your candidate isn't listed
+              Enter name if your candidate isn't listed (3-50 characters)
             </div>
           </div>
         </div>
@@ -162,6 +192,7 @@ const Vote = () => {
         className="btn btn-primary btn-lg w-100"
         onClick={handleVote}
         disabled={!selectedCandidate && !newCandidateName.trim()}
+        aria-disabled={!selectedCandidate && !newCandidateName.trim()}
       >
         Submit Vote
       </button>
