@@ -9,4 +9,8 @@ Rails.application.routes.draw do
   root "home#index"
   resources :votes, only: [:index, :create], defaults: { format: :json }
   get '/vote', to: 'votes#index'
+  
+  post '/login', to: 'sessions#create'
+  delete '/logout', to: 'sessions#destroy'
+  get '/check_session', to: 'sessions#show'
 end
