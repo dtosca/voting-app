@@ -26,16 +26,47 @@ const Home = ({ message }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (validateForm()) {
       setIsSubmitting(true);
+
       // Handle form submission
       console.log({ email, password, zipCode });
+
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          // Redirect to voting page
+          window.location.href = '/vote'; 
+        } else {
+          const data = await response.json();
+          alert(data.error || "Login failed");
+        }
+      } catch (err) {
+        alert("Network error");
+      }
+
       // Reset form after submission
       setIsSubmitting(false);
     }
-  };
+    
+    }
+
+    // Redirect to home if not logged in
+    useEffect(() => {
+      fetch('/check_session')
+        .then(res => {
+          if (!res.ok) window.location.href = "/"; 
+        });
+    }, []);
 
   return (
     <>
