@@ -7,17 +7,20 @@ class VotesController < ApplicationController
   end
 
   # POST /votes - API endpoint for voting (returns JSON)
-  
   def create
+
+    Rails.logger.info "========== PARAMS RECEIVED =========="
+    Rails.logger.info params.inspect
+    Rails.logger.info "====================================="
+
     if current_user.vote
       return render json: { 
         success: false, 
         errors: ["You have already voted"] 
       }, status: :unprocessable_entity
     end
-
-    # Simplified to just handle candidate names
-    candidate_name = params[:candidate_name]&.strip&.titleize
+    
+    candidate_name = vote_params[:candidate_name]&.strip&.titleize
 
     if candidate_name.blank?
       return render json: { 
@@ -26,31 +29,37 @@ class VotesController < ApplicationController
       }, status: :unprocessable_entity
     end
 
-    # Find or create candidate (within limit)
-    candidate = Candidate.find_or_initialize_by(name: candidate_name)
-    
-    if Candidate.count >= 10 && candidate.new_record?
-      return render json: {
-        success: false,
-        errors: ["Maximum candidate limit reached"]
-      }, status: :unprocessable_entity
+
+    # FIRST try to find existing candidate
+    candidate = Candidate.where("LOWER(name) = ?", candidate_name.downcase).first
+
+    # If not found, create new candidate (if under limit)
+    unless candidate
+      if Candidate.count >= 10
+        return render json: {
+          success: false,
+          errors: ["Maximum candidate limit reached"]
+        }, status: :unprocessable_entity
+      end
+      
+      candidate = Candidate.create!(name: candidate_name)
     end
 
-    candidate.save! if candidate.new_record?
-    @vote = current_user.build_vote(candidate: candidate)
+    # Create vote association
+    @vote = current_user.create_vote(candidate: candidate)
 
-    if @vote.save
-      render json: { success: true }
-    else
+    render json: { success: true }
+    
+    rescue ActiveRecord::RecordInvalid => e
       render json: {
         success: false,
-        errors: @vote.errors.full_messages
+        errors: [e.message]
       }, status: :unprocessable_entity
-    end
+  
   end
 
   private
   def vote_params
-    params.permit(:candidate_name)
+    params.permit(vote: [:candidate_name]).require(:vote)
   end
 end

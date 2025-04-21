@@ -14,4 +14,8 @@ class Candidate < ApplicationRecord
         errors.add(:base, "Maximum of 10 candidates allowed")
       end
     end
+
+    def vote_count
+      votes.count
+    end
   end

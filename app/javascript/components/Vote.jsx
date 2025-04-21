@@ -18,7 +18,7 @@ const Vote = (props) => {
   const handleVote = async (candidateVote) => {
     console.log(candidateVote);
 
-    if (!selectedCandidate && !newCandidateName.trim()) {
+    if (!candidateVote) {
       setError("Please select a candidate or enter a write-in name");
       return;
     }
@@ -27,7 +27,7 @@ const Vote = (props) => {
       const response = await fetch(props.vote_url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vote: { candidate_id: candidateVote } }),
+        body: JSON.stringify({ vote: { candidate_name: candidateVote } }),
       });
 
       const data = await response.json();
