@@ -27,16 +27,13 @@ const Vote = (props) => {
       const response = await fetch(props.vote_url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vote: { candidate_id: candidateVote } }),
+        body: JSON.stringify({ candidate_name: candidateName }),
       });
 
-      const responseData = await response.json();
+      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          responseData.errors?.join(", ") || responseData.error || "Vote failed"
-        );
-      }
+      if (!response.ok)
+        throw new Error(data.errors?.join(", ") || "Vote failed");
 
       setHasVoted(true);
     } catch (err) {

@@ -7,8 +7,8 @@ class VotesController < ApplicationController
   end
 
   # POST /votes - API endpoint for voting (returns JSON)
+  
   def create
-    # Keep your existing create action unchanged
     if current_user.vote
       return render json: { 
         success: false, 
@@ -16,39 +16,41 @@ class VotesController < ApplicationController
       }, status: :unprocessable_entity
     end
 
-    if vote_params[:candidate_id].present?
-      @vote = current_user.build_vote(candidate_id: vote_params[:candidate_id])
-    elsif vote_params[:new_candidate].present?
-      if Candidate.count >= 10
-        return render json: { 
-          success: false, 
-          errors: ["Maximum candidate limit reached"] 
-        }, status: :unproceAssable_entity
-      end
-      
-      candidate = Candidate.find_or_create_by!(name: vote_params[:new_candidate].strip.titleize)
-      @vote = current_user.build_vote(candidate: candidate)
-    else
+    # Simplified to just handle candidate names
+    candidate_name = params[:candidate_name]&.strip&.titleize
+
+    if candidate_name.blank?
       return render json: { 
-        
-        success: false, 
-        errors: ["No voting method selected"] 
+        success: false,
+        errors: ["Please select a candidate"] 
       }, status: :unprocessable_entity
     end
+
+    # Find or create candidate (within limit)
+    candidate = Candidate.find_or_initialize_by(name: candidate_name)
+    
+    if Candidate.count >= 10 && candidate.new_record?
+      return render json: {
+        success: false,
+        errors: ["Maximum candidate limit reached"]
+      }, status: :unprocessable_entity
+    end
+
+    candidate.save! if candidate.new_record?
+    @vote = current_user.build_vote(candidate: candidate)
 
     if @vote.save
       render json: { success: true }
     else
-      render json: { 
-        success: false, 
-        errors: @vote.errors.full_messages 
+      render json: {
+        success: false,
+        errors: @vote.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
 
   private
-
   def vote_params
-    params.require(:vote).permit(:candidate_id, :new_candidate)
+    params.permit(:candidate_name)
   end
 end
