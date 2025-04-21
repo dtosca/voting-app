@@ -5,19 +5,117 @@ const Vote = (props) => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [newCandidateName, setNewCandidateName] = useState('');
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasVoted, setHasVoted] = useState(false);
+
   useEffect(() => {
-    fetch(props.candidates_url)
-      .then(res => res.json())
-      .then(setCandidates);
+    // fetch(props.candidates_url)
+    //   .then(res => res.json())
+    //   .then(setCandidates);
+
+    const fetchData = async () => {
+      try {
+        // Check if user already voted
+        const voteCheck = await fetch(props.vote_url);
+        
+        if (!voteCheck.ok) {
+          const errorText = await voteCheck.text();
+          throw new Error(errorText || 'Failed to check voting status');
+        }
+
+        const voteData = await voteCheck.json();
+        if (voteData.voted) {
+          setHasVoted(true);
+          return;
+        }
+
+        // Fetch candidates if user hasn't voted
+        const candidatesResponse = await fetch(props.candidates_url);
+        
+        if (!candidatesResponse.ok) {
+          const errorText = await candidatesResponse.text();
+          throw new Error(errorText || 'Failed to load candidates');
+        }
+        
+        const candidatesData = await candidatesResponse.json();
+        setCandidates(candidatesData);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleVote = (candidateVote) => {
 
-    fetch(props.vote_url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vote: { candidate_id: candidateVot } })
-    });
+    console.log("candidate vote name: ",candidateVote.name)
+
+    if (!selectedCandidate && !newCandidateName.trim()) {
+      setError("Please select a candidate or enter a write-in name");
+      return;
+    }
+
+    try {
+      const response = await fetch(props.vote_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote: { candidate_id: candidateVote.name } })
+      });
+
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(
+          responseData.errors?.join(', ') || 
+          responseData.error || 
+          'Vote failed'
+        );
+      }
+
+      setHasVoted(true);
+    } catch (err) {
+      setError(err.message);
+    }
+
+  if (hasVoted) {
+    return (
+      <div className="alert alert-success" role="alert">
+        <h2>Thank you for voting!</h2>
+        <p>Your vote has been recorded.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center my-5">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button 
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => setError(null)}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   };
 
   return (
@@ -51,14 +149,15 @@ const Vote = (props) => {
             ))}
           </div> 
         </div>
-        <button
+      </div>
+
+      <button
             className="btn btn-primary btn-lg w-100"
             onClick={handleVote(selectedCandidate)}
             disabled={!selectedCandidate && !newCandidateName.trim()}
         >
           Vote
         </button>
-      </div>
 
       <div className="card mb-4">
         <div className="card-body">
