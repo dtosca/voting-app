@@ -1,11 +1,11 @@
 Rails.application.routes.draw do
-  root "home#index" # This will render your React app
+  root "home#index"
   
-  # API routes
+  # renders React component
+  get '/votes', to: 'votes#index'
+  
   post '/login', to: 'sessions#create'
-  delete '/logout', to: 'sessions#destroy'
+  post '/votes', to: 'votes#create'
   get '/check_session', to: 'sessions#show'
-  
-  resources :votes, only: [:index, :create]
   resources :candidates, only: [:index]
 end

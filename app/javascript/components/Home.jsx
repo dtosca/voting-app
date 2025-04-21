@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Home = ({ message }) => {
-
-  {/* <h1>Message: {message}</h1> */}
+const Home = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [zipCode, setZipCode] = useState('');

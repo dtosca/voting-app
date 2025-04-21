@@ -1,18 +1,14 @@
 class VotesController < ApplicationController
-  before_action :require_login
-  skip_before_action :verify_authenticity_token # Add this for API endpoints
-  
-  # GET /votes
+  skip_before_action :verify_authenticity_token, only: [:create]
+  before_action :require_login, except: [:index]
+
+  # GET /votes - Renders HTML with React component
   def index
-    # if current_user.vote
-    #   render json: { voted: true, vote: { candidate_id: current_user.vote.candidate_id } }
-    # else
-    #   render json: { voted: false }
-    # end
   end
 
-  # POST /votes
+  # POST /votes - API endpoint for voting (returns JSON)
   def create
+    # Keep your existing create action unchanged
     if current_user.vote
       return render json: { 
         success: false, 
@@ -34,6 +30,7 @@ class VotesController < ApplicationController
       @vote = current_user.build_vote(candidate: candidate)
     else
       return render json: { 
+        
         success: false, 
         errors: ["No voting method selected"] 
       }, status: :unprocessable_entity

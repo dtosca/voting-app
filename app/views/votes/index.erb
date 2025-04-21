@@ -1,1 +1,4 @@
-<%= react_component "Vote" %>
+<%= react_component "Vote", {
+  candidates_url: candidates_path,
+  vote_url: votes_path
+} %>
