@@ -23,7 +23,7 @@ class VotesController < ApplicationController
         return render json: { 
           success: false, 
           errors: ["Maximum candidate limit reached"] 
-        }, status: :unprocessable_entity
+        }, status: :unproceAssable_entity
       end
       
       candidate = Candidate.find_or_create_by!(name: vote_params[:new_candidate].strip.titleize)

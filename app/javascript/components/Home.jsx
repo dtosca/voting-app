@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const Home = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   //client-side validations
   const validateForm = () => {
     const newErrors = {};
-    if (!email) newErrors.email = 'Email is required';
+    if (!email) newErrors.email = "Email is required";
     //regex for email validation
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email is invalid';
-    
-    if (!password) newErrors.password = 'Password is required';
-    
-    if (!zipCode) newErrors.zipCode = 'Zip code is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+
+    if (!password) newErrors.password = "Password is required";
+
+    if (!zipCode) newErrors.zipCode = "Zip code is required";
     //regex for zip code formation validation
-    else if (!/^\d{5}(-\d{4})?$/.test(zipCode)) newErrors.zipCode = 'Invalid zip code format';
-    
+    else if (!/^\d{5}(-\d{4})?$/.test(zipCode))
+      newErrors.zipCode = "Invalid zip code format";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -31,22 +32,22 @@ const Home = () => {
     if (validateForm()) {
       setIsSubmitting(true);
 
-      const response = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-        zip_code: zipCode 
-      }),
-    });
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          zip_code: zipCode,
+        }),
+      });
 
-    console.log("Raw response:", response); // Inspect the full response
+      console.log("Raw response:", response); // Inspect the full response
 
       // First check response status
-      if (response.status === 204 || response.statusText === 'No Content') {
+      if (response.status === 204 || response.statusText === "No Content") {
         // Handle empty response
-        window.location.href = '/votes';
+        window.location.href = "/votes";
         return;
       }
 
@@ -54,7 +55,7 @@ const Home = () => {
       try {
         const data = await response.json();
         if (response.ok) {
-          window.location.href = '/votes';
+          window.location.href = "/votes";
         } else {
           alert(data.error || "Login failed");
         }
@@ -64,24 +65,23 @@ const Home = () => {
         console.error("Failed to parse JSON:", text);
         alert("Login error: " + text);
       }
-        // Reset form after submission
-        setIsSubmitting(false);
-      } else {
+      // Reset form after submission
+      setIsSubmitting(false);
+    } else {
     }
-  }
+  };
 
-    // Redirect to home if not logged in
-    useEffect(() => {
-      fetch('/check_session')
-        .then(response => {
-          if (!response.ok) window.location.href = "/"; 
-        });
-    }, []);
+  // Redirect to home if not logged in
+  useEffect(() => {
+    fetch("/check_session").then((response) => {
+      if (!response.ok) window.location.href = "/";
+    });
+  }, []);
 
   return (
-    <>    
-    <h1 id="signin-heading">Sign In to Voting App</h1>
-      
+    <>
+      <h1 id="signin-heading">Sign In to Voting App</h1>
+
       <form onSubmit={handleSubmit} noValidate aria-labelledby="signin-heading">
         <div className="form-group">
           <label htmlFor="email">Email Address</label>
@@ -146,12 +146,10 @@ const Home = () => {
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting ? 'Signing In...' : 'Sign In'}
+          {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
-
-      
-    </> 
+    </>
   );
 };
 
