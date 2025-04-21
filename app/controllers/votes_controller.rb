@@ -4,11 +4,11 @@ class VotesController < ApplicationController
   
   # GET /votes
   def index
-    if current_user.vote
-      render json: { voted: true, vote: { candidate_id: current_user.vote.candidate_id } }
-    else
-      render json: { voted: false }
-    end
+    # if current_user.vote
+    #   render json: { voted: true, vote: { candidate_id: current_user.vote.candidate_id } }
+    # else
+    #   render json: { voted: false }
+    # end
   end
 
   # POST /votes
