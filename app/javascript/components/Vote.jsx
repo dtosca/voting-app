@@ -10,7 +10,7 @@ const Vote = (props) => {
 
   useEffect(() => {
     // Fetch candidates
-    fetch(props.candidates_usrl)
+    fetch(props.candidates_url)
       .then((res) => res.json())
       .then(setCandidates);
   }, []);
@@ -27,7 +27,7 @@ const Vote = (props) => {
       const response = await fetch(props.vote_url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ candidate_name: candidateName }),
+        body: JSON.stringify({ vote: { candidate_id: candidateVote } }),
       });
 
       const data = await response.json();
