@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import UserHeader from "./UserHeader";
 
 const Vote = (props) => {
   const [candidates, setCandidates] = useState([]);
@@ -81,123 +82,126 @@ const Vote = (props) => {
   }
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <div className="card mb-4">
-            <div className="card-body">
-              <h1 className="card-title text-center mb-4">
-                Cast your vote today!
-              </h1>
+    <>
+      <UserHeader />
+      <div className="container mt-5">
+        <div className="row justify-content-center">
+          <div className="col-md-8">
+            <div className="card mb-4">
+              <div className="card-body">
+                <h1 className="card-title text-center mb-4">
+                  Cast your vote today!
+                </h1>
 
-              <div className="card mb-4">
-                <div className="card-body">
-                  <h2 className="h4 mb-3">Vote for a candidate:</h2>
-                  <div className="list-group">
-                    {candidates.map((candidate) => (
-                      <label
-                        key={candidate.id}
-                        className="list-group-item d-flex align-items-center"
-                      >
-                        <input
-                          type="radio"
-                          name="candidate"
-                          className="form-check-input me-3"
-                          checked={selectedCandidate === candidate.id}
-                          onChange={() => {
-                            setSelectedCandidate(candidate.id);
-                            setCandidateVote(candidate.name);
-                            setNewCandidateName("");
-                          }}
-                          aria-labelledby={`candidate-label-${candidate.id}`}
-                        />
-                        <span id={`candidate-label-${candidate.id}`}>
-                          {candidate.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="d-grid mb-4">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={() => handleVote(candidateVote)}
-                  disabled={
-                    (!selectedCandidate && !newCandidateName.trim()) ||
-                    isSubmitting
-                  }
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      Voting...
-                    </>
-                  ) : (
-                    "Vote"
-                  )}
-                </button>
-              </div>
-
-              <div className="card mb-4">
-                <div className="card-body">
-                  <div className="mb-3">
-                    <label htmlFor="writeInCandidate" className="form-label">
-                      <h2 className="h4 mb-3">Or, add a new candidate:</h2>
-                    </label>
-                    <input
-                      type="text"
-                      id="writeInCandidate"
-                      className="form-control"
-                      value={newCandidateName}
-                      onChange={(e) => {
-                        setNewCandidateName(e.target.value);
-                        setCandidateVote(e.target.value);
-                        setSelectedCandidate(null);
-                      }}
-                      aria-describedby="writeInHelp"
-                    />
-                    {/* Adding a label in favor of a placeholder for better a11y*/}
-                    <div id="writeInHelp" className="form-text">
-                      Enter name of the candidate you want to add.
+                <div className="card mb-4">
+                  <div className="card-body">
+                    <h2 className="h4 mb-3">Vote for a candidate:</h2>
+                    <div className="list-group">
+                      {candidates.map((candidate) => (
+                        <label
+                          key={candidate.id}
+                          className="list-group-item d-flex align-items-center"
+                        >
+                          <input
+                            type="radio"
+                            name="candidate"
+                            className="form-check-input me-3"
+                            checked={selectedCandidate === candidate.id}
+                            onChange={() => {
+                              setSelectedCandidate(candidate.id);
+                              setCandidateVote(candidate.name);
+                              setNewCandidateName("");
+                            }}
+                            aria-labelledby={`candidate-label-${candidate.id}`}
+                          />
+                          <span id={`candidate-label-${candidate.id}`}>
+                            {candidate.name}
+                          </span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="d-grid">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={() => handleVote(candidateVote)}
-                  disabled={
-                    (!selectedCandidate && !newCandidateName.trim()) ||
-                    isSubmitting
-                  }
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      Voting...
-                    </>
-                  ) : (
-                    "Vote"
-                  )}
-                </button>
+                <div className="d-grid mb-4">
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={() => handleVote(candidateVote)}
+                    disabled={
+                      (!selectedCandidate && !newCandidateName.trim()) ||
+                      isSubmitting
+                    }
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Voting...
+                      </>
+                    ) : (
+                      "Vote"
+                    )}
+                  </button>
+                </div>
+
+                <div className="card mb-4">
+                  <div className="card-body">
+                    <div className="mb-3">
+                      <label htmlFor="writeInCandidate" className="form-label">
+                        <h2 className="h4 mb-3">Or, add a new candidate:</h2>
+                      </label>
+                      <input
+                        type="text"
+                        id="writeInCandidate"
+                        className="form-control"
+                        value={newCandidateName}
+                        onChange={(e) => {
+                          setNewCandidateName(e.target.value);
+                          setCandidateVote(e.target.value);
+                          setSelectedCandidate(null);
+                        }}
+                        aria-describedby="writeInHelp"
+                      />
+                      {/* Adding a label in favor of a placeholder for better a11y*/}
+                      <div id="writeInHelp" className="form-text">
+                        Enter name of the candidate you want to add.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="d-grid">
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={() => handleVote(candidateVote)}
+                    disabled={
+                      (!selectedCandidate && !newCandidateName.trim()) ||
+                      isSubmitting
+                    }
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Voting...
+                      </>
+                    ) : (
+                      "Vote"
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

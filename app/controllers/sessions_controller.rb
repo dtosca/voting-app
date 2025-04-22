@@ -19,8 +19,7 @@ class SessionsController < ApplicationController
       render json: { 
         success: true,
         user: {
-          email: user.email,
-          zip_code: user.zip_code
+          email: user.email
         }
       }
 
@@ -51,8 +50,7 @@ class SessionsController < ApplicationController
         render json: { 
           logged_in: true,
           user: {
-            email: current_user.email,
-            zip_code: current_user.zip_code
+            email: current_user.email
           }
         }
       else
