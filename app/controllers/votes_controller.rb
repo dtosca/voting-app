@@ -25,7 +25,7 @@ class VotesController < ApplicationController
     if candidate_name.blank?
       return render json: { 
         success: false,
-        errors: ["Please select a candidate"] 
+        errors: ["Please select or write-in a candidate"] 
       }, status: :unprocessable_entity
     end
 
