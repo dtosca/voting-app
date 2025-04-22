@@ -80,9 +80,7 @@ const Home = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-body">
-              <h1 className="card-title text-center mb-4">
-                Sign In to Voting App
-              </h1>
+              <h1 className="card-title text-center mb-4">Sign in to vote</h1>
 
               <form
                 onSubmit={handleSubmit}
@@ -91,7 +89,7 @@ const Home = () => {
               >
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label">
-                    Email Address
+                    Email
                   </label>
                   <input
                     type="email"
@@ -141,7 +139,7 @@ const Home = () => {
 
                 <div className="mb-4">
                   <label htmlFor="zipCode" className="form-label">
-                    Zip Code
+                    Zip code
                   </label>
                   <input
                     type="text"
@@ -179,10 +177,10 @@ const Home = () => {
                           role="status"
                           aria-hidden="true"
                         ></span>
-                        Signing In...
+                        Signing in...
                       </>
                     ) : (
-                      "Sign In"
+                      "Sign in"
                     )}
                   </button>
                 </div>
